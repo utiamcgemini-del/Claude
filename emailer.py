@@ -52,10 +52,23 @@ _SECTION_TEMPLATE = """\
 _ARTICLE_TEMPLATE = """\
 <div class="article">
   <a href="{link}" target="_blank">{title}</a>
-  <div class="meta">{published}</div>
+  <div class="meta">{published}{importance_badge}</div>
   <div class="snippet">{summary}</div>
 </div>
 """
+
+
+def _importance_badge(score) -> str:
+    if score is None:
+        return ""
+    score = int(score)
+    if score >= 8:
+        color, label = "#c0392b", f"&#9888; Critical ({score}/10)"
+    elif score >= 5:
+        color, label = "#e67e22", f"&#9888; Medium ({score}/10)"
+    else:
+        color, label = "#27ae60", f"({score}/10)"
+    return f' &nbsp;<span style="color:{color};font-weight:bold;font-size:11px">{label}</span>'
 
 
 def _build_html(articles: list[dict]) -> str:
@@ -71,7 +84,8 @@ def _build_html(articles: list[dict]) -> str:
                 link=i["link"],
                 title=i["title"],
                 published=i["published"],
-                summary=i["summary"] or "No summary available.",
+                summary=i.get("ai_summary") or i["summary"] or "No summary available.",
+                importance_badge=_importance_badge(i.get("importance")),
             )
             for i in items
         )

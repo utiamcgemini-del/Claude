@@ -10,6 +10,7 @@ import sys
 
 import config
 from fetcher import fetch_articles
+from summarizer import analyze_articles
 from emailer import send_digest
 
 
@@ -17,6 +18,7 @@ def run_digest():
     print("[bot] Fetching cybersecurity articles...")
     articles = fetch_articles(top_n=config.TOP_N)
     print(f"[bot] Total articles fetched: {len(articles)}")
+    articles = analyze_articles(articles)
     send_digest(articles)
 
 
