@@ -38,9 +38,11 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
+    --font-display:'Arial Black','Helvetica Neue',Impact,Haettenschweiler,sans-serif;
+    --font-mono:'Courier New', ui-monospace, Menlo, Consolas, monospace;
     background:var(--paper);
     color:var(--ink);
-    font-family:'Courier New', ui-monospace, Menlo, Consolas, monospace;
+    font-family:var(--font-mono);
     min-height:100vh;
     display:flex;
     justify-content:center;
@@ -48,6 +50,7 @@
   }
   .app{width:100%;max-width:920px;}
   h1{
+    font-family:var(--font-display);
     font-size:clamp(28px,5vw,44px);
     letter-spacing:4px;
     text-align:center;
@@ -55,6 +58,7 @@
     text-transform:uppercase;
   }
   .subtitle{
+    font-family:var(--font-mono);
     text-align:center;
     color:var(--muted);
     letter-spacing:2px;
@@ -101,7 +105,7 @@
     background:var(--lane-alt);
   }
   .car-card .car-svg{width:100%;height:70px;}
-  .car-card h3{margin:8px 0 2px;font-size:15px;letter-spacing:1px;text-transform:uppercase;}
+  .car-card h3{font-family:var(--font-display);margin:8px 0 2px;font-size:15px;letter-spacing:1px;text-transform:uppercase;}
   .car-card p{margin:0;font-size:11px;color:var(--muted);}
 
   .option-row{
@@ -114,7 +118,7 @@
   }
   .option-row span.label{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
   .pill-btn{
-    font-family:inherit;
+    font-family:var(--font-display);
     background:var(--panel);
     color:var(--ink);
     border:2px solid var(--panel-border);
@@ -130,7 +134,7 @@
   .primary-btn{
     display:block;
     margin:0 auto;
-    font-family:inherit;
+    font-family:var(--font-display);
     background:var(--ink);
     color:var(--paper);
     border:2px solid var(--ink);
@@ -145,7 +149,7 @@
   .primary-btn:not(:disabled):hover{background:transparent;color:var(--ink);}
 
   .ghost-btn{
-    font-family:inherit;
+    font-family:var(--font-display);
     background:transparent;
     color:var(--ink);
     border:2px solid var(--ink);
@@ -195,6 +199,7 @@
   .lane:last-child{border-bottom:none;}
   .lane:nth-child(odd){background:rgba(0,0,0,0.03);}
   .lane-tag{
+    font-family:var(--font-display);
     position:absolute;
     left:6px;
     top:4px;
@@ -232,6 +237,7 @@
   }
   .racer .car-svg{width:100%;height:100%;}
   .racer .car-name{
+    font-family:var(--font-display);
     position:absolute;
     top:-14px;left:0;
     font-size:9px;
@@ -309,6 +315,7 @@
   }
   .standings li.you{background:var(--lane-alt);}
   .rank{
+    font-family:var(--font-display);
     font-size:22px;
     font-weight:bold;
     width:34px;
@@ -316,10 +323,11 @@
   }
   .standings .car-svg{width:60px;height:30px;flex-shrink:0;}
   .standings .who{flex:1;}
-  .standings .who .name{font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+  .standings .who .name{font-family:var(--font-display);font-size:13px;letter-spacing:1px;text-transform:uppercase;}
   .standings .who .time{font-size:11px;color:var(--muted);}
   .results-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
   .results-summary{
+    font-family:var(--font-display);
     text-align:center;
     margin-bottom:22px;
     font-size:13px;
