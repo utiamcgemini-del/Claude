@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Daily cybersecurity email digest bot.
+"""Daily cyber fraud & scam news email digest bot.
+
+Tracks cyber fraud, data breaches, scams, AI-enabled scams/fraud, and
+regulatory fines/enforcement actions.
 
 Usage:
   python main.py          # Start scheduler (sends at SEND_HOUR UTC daily)
@@ -15,15 +18,15 @@ from emailer import send_digest
 
 
 def run_digest():
-    print("[bot] Fetching cybersecurity articles...")
+    print("[bot] Fetching cyber fraud / scam / breach articles...")
     articles = fetch_articles(top_n=config.TOP_N)
-    print(f"[bot] Total articles fetched: {len(articles)}")
+    print(f"[bot] Total keyword-relevant articles fetched: {len(articles)}")
     articles = analyze_articles(articles)
     send_digest(articles)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cybersecurity email digest bot")
+    parser = argparse.ArgumentParser(description="Cyber fraud & scam news email digest bot")
     parser.add_argument(
         "--now", action="store_true", help="Send digest immediately and exit"
     )
