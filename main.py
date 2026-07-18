@@ -5,7 +5,7 @@ Tracks cyber fraud, data breaches, scams, AI-enabled scams/fraud, and
 regulatory fines/enforcement actions.
 
 Usage:
-  python main.py          # Start scheduler (sends at SEND_HOUR UTC daily)
+  python main.py          # Start scheduler (sends daily at SEND_TIMES_IST)
   python main.py --now    # Send digest immediately and exit
 """
 import argparse
@@ -37,13 +37,21 @@ def main():
         return
 
     # Scheduled mode
+    from zoneinfo import ZoneInfo
     from apscheduler.schedulers.blocking import BlockingScheduler
 
-    scheduler = BlockingScheduler(timezone="UTC")
-    scheduler.add_job(run_digest, "cron", hour=config.SEND_HOUR, minute=0)
-    print(
-        f"[bot] Scheduler started — digest will be sent daily at {config.SEND_HOUR:02d}:00 UTC"
-    )
+    ist = ZoneInfo("Asia/Kolkata")
+    times = []
+    for chunk in config.SEND_TIMES_IST.split(","):
+        hour_str, minute_str = chunk.strip().split(":")
+        times.append((int(hour_str), int(minute_str)))
+
+    scheduler = BlockingScheduler(timezone=ist)
+    for hour, minute in times:
+        scheduler.add_job(run_digest, "cron", hour=hour, minute=minute, timezone=ist)
+
+    times_display = ", ".join(f"{h:02d}:{m:02d}" for h, m in times)
+    print(f"[bot] Scheduler started — digest will be sent daily at {times_display} IST")
     try:
         scheduler.start()
     except (KeyboardInterrupt, SystemExit):
