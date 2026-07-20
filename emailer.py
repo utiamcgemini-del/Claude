@@ -5,6 +5,14 @@ from email.mime.text import MIMEText
 
 import config
 
+_CATEGORY_ORDER = ["Data Breach", "Cyber Fraud", "Scam", "AI Scam/Fraud", "Regulatory Fine"]
+_CATEGORY_COLORS = {
+    "Data Breach": "#c0392b",
+    "Cyber Fraud": "#8e44ad",
+    "Scam": "#d35400",
+    "AI Scam/Fraud": "#2980b9",
+    "Regulatory Fine": "#16a085",
+}
 
 _HTML_TEMPLATE = """\
 <!DOCTYPE html>
@@ -18,7 +26,7 @@ _HTML_TEMPLATE = """\
   .header h1 {{ margin: 0; font-size: 22px; }}
   .header p {{ margin: 4px 0 0; font-size: 13px; color: #aaa; }}
   .source-block {{ padding: 20px 32px; border-bottom: 1px solid #eee; }}
-  .source-block h2 {{ font-size: 15px; color: #c0392b; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; }}
+  .source-block h2 {{ font-size: 15px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; }}
   .article {{ margin-bottom: 14px; }}
   .article a {{ font-size: 15px; font-weight: bold; color: #1a1a2e; text-decoration: none; }}
   .article a:hover {{ text-decoration: underline; }}
@@ -30,12 +38,12 @@ _HTML_TEMPLATE = """\
 <body>
 <div class="container">
   <div class="header">
-    <h1>&#128737; Daily Cybersecurity Digest</h1>
+    <h1>&#128737; Cyber Fraud &amp; Scam Watch</h1>
     <p>{date}</p>
   </div>
   {sections}
   <div class="footer">
-    You are receiving this because you subscribed to the daily cybersecurity digest bot.
+    You are receiving this because you subscribed to the Cyber Fraud &amp; Scam Watch digest bot.
   </div>
 </div>
 </body>
@@ -44,7 +52,7 @@ _HTML_TEMPLATE = """\
 
 _SECTION_TEMPLATE = """\
 <div class="source-block">
-  <h2>{source}</h2>
+  <h2 style="color:{color}">{category}</h2>
   {articles}
 </div>
 """
@@ -52,7 +60,7 @@ _SECTION_TEMPLATE = """\
 _ARTICLE_TEMPLATE = """\
 <div class="article">
   <a href="{link}" target="_blank">{title}</a>
-  <div class="meta">{published}{importance_badge}</div>
+  <div class="meta">{source} &middot; {published}{importance_badge}</div>
   <div class="snippet">{summary}</div>
 </div>
 """
@@ -71,59 +79,70 @@ def _importance_badge(score) -> str:
     return f' &nbsp;<span style="color:{color};font-weight:bold;font-size:11px">{label}</span>'
 
 
-def _build_html(articles: list[dict]) -> str:
-    date_str = datetime.now(timezone.utc).strftime("%A, %B %d, %Y")
+def _grouped_by_category(articles: list[dict]) -> dict[str, list[dict]]:
     grouped: dict[str, list[dict]] = {}
     for a in articles:
-        grouped.setdefault(a["source"], []).append(a)
+        grouped.setdefault(a.get("category", "Scam"), []).append(a)
+    ordered = {cat: grouped[cat] for cat in _CATEGORY_ORDER if cat in grouped}
+    for cat, items in grouped.items():
+        if cat not in ordered:
+            ordered[cat] = items
+    return ordered
+
+
+def _build_html(articles: list[dict]) -> str:
+    date_str = datetime.now(timezone.utc).strftime("%A, %B %d, %Y")
+    grouped = _grouped_by_category(articles)
 
     sections = ""
-    for source, items in grouped.items():
+    for category, items in grouped.items():
         arts = "".join(
             _ARTICLE_TEMPLATE.format(
                 link=i["link"],
                 title=i["title"],
+                source=i["source"],
                 published=i["published"],
                 summary=i.get("ai_summary") or i["summary"] or "No summary available.",
                 importance_badge=_importance_badge(i.get("importance")),
             )
             for i in items
         )
-        sections += _SECTION_TEMPLATE.format(source=source, articles=arts)
+        sections += _SECTION_TEMPLATE.format(
+            category=category, color=_CATEGORY_COLORS.get(category, "#555"), articles=arts
+        )
 
     return _HTML_TEMPLATE.format(date=date_str, sections=sections)
 
 
 def _build_plain(articles: list[dict]) -> str:
     lines = [
-        f"Daily Cybersecurity Digest — {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
+        f"Cyber Fraud & Scam Watch — {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
         "=" * 60,
         "",
     ]
-    grouped: dict[str, list[dict]] = {}
-    for a in articles:
-        grouped.setdefault(a["source"], []).append(a)
+    grouped = _grouped_by_category(articles)
 
-    for source, items in grouped.items():
-        lines.append(f"[ {source} ]")
+    for category, items in grouped.items():
+        lines.append(f"[ {category} ]")
         for i in items:
-            lines.append(f"  * {i['title']}")
+            lines.append(f"  * {i['title']} ({i['source']})")
             lines.append(f"    {i['link']}")
             lines.append(f"    {i['published']}")
-            if i["summary"]:
-                lines.append(f"    {i['summary'][:200]}")
+            summary = i.get("ai_summary") or i["summary"]
+            if summary:
+                lines.append(f"    {summary[:200]}")
             lines.append("")
     return "\n".join(lines)
 
 
 def send_digest(articles: list[dict]) -> None:
     if not articles:
-        print("[emailer] No articles to send.")
+        print("[emailer] No relevant articles to send.")
         return
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = (
-        f"Cybersecurity Digest — {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
+        f"Cyber Fraud & Scam Watch — {datetime.now(timezone.utc).strftime('%b %d, %Y')}"
     )
     msg["From"] = config.SENDER_EMAIL
     msg["To"] = config.RECIPIENT_EMAIL
